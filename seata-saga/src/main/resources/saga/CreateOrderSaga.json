@@ -1,0 +1,45 @@
+{
+    "name": "CreateOrderSaga",
+    "startState": "CreateOrder",
+    "version": "1.0.0",
+    "states": {
+        "CreateOrder": {
+            "type": "serviceTask",
+            "serviceName": "orderServiceImpl",
+            "methodName": "create",
+            "input": [
+                "$.[request]"
+            ],
+            "output": "$.[response]",
+            "next": "DeductInventory"
+        },
+        "DeductInventory": {
+            "type": "serviceTask",
+            "serviceName": "inventoryServiceImpl",
+            "methodName": "deduct",
+            "input": [
+                "$.[request]"
+            ],
+            "output": "$.[response]",
+            "next": "DeductBalance"
+        },
+        "DeductBalance": {
+            "type": "serviceTask",
+            "serviceName": "accountServiceImpl",
+            "methodName": "deduct",
+            "input": [
+                "$.[request]"
+            ],
+            "output": "$.[response]",
+            "next": "Succeed"
+        },
+        "Succeed": {
+            "type": "succeed"
+        },
+        "Fail": {
+            "type": "fail",
+            "errorCode": "CREATE_ORDER_FAILED",
+            "message": "创建订单失败"
+        }
+    }
+}

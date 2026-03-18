@@ -1,0 +1,24 @@
+server:
+  port: 8089
+
+spring:
+  application:
+    name: seata-saga-demo
+
+seata:
+  enabled: true
+  application-id: ${spring.application.name}
+  tx-service-group: my_tx_group
+  service:
+    vgroup-mapping:
+      my_tx_group: default
+    grouplist:
+      default: 127.0.0.1:8091
+  saga:
+    enabled: true
+    state-machine:
+      table-prefix: seata_
+      enable-async: true
+      async-thread-pool-size: 10
+      auto-register-resources: true
+      resources: classpath*:saga/*.json

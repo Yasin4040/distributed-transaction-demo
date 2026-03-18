@@ -1,0 +1,24 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: rocketmq-message-demo
+  datasource:
+    url: jdbc:mysql://localhost:3306/dtx_rocketmq?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf-8
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+rocketmq:
+  name-server: localhost:9876
+  producer:
+    group: order-producer-group
+    send-message-timeout: 10000
+    retry-times-when-send-failed: 3
+    retry-times-when-send-async-failed: 3
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true

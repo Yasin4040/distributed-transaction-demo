@@ -1,0 +1,40 @@
+package com.example.dtx.entity;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+/**
+ * 订单实体类
+ */
+@Data
+@TableName("t_order")
+public class Order {
+    
+    @TableId(type = IdType.AUTO)
+    private Long id;
+    
+    private String orderNo;
+    
+    private Long userId;
+    
+    private Long productId;
+    
+    private Integer quantity;
+    
+    private BigDecimal amount;
+    
+    /**
+     * 0 - 初始化（TRY阶段）
+     * 1 - 已确认
+     * 2 - 已取消
+     */
+    private Integer status;
+    
+    private LocalDateTime createTime;
+    
+    private LocalDateTime updateTime;
+}

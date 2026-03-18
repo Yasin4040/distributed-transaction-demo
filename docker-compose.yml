@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: dtx-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: dtx_order
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./xa-2pc/src/main/resources/sql/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    command: --default-authentication-plugin=mysql_native_password
+
+  # RocketMQ NameServer
+  rocketmq-nameserver:
+    image: apache/rocketmq:5.1.4
+    container_name: dtx-rocketmq-nameserver
+    ports:
+      - "9876:9876"
+    environment:
+      - JAVA_OPT_EXT=-server -Xms512m -Xmx512m
+    command: sh mqnameserver
+
+  # RocketMQ Broker
+  rocketmq-broker:
+    image: apache/rocketmq:5.1.4
+    container_name: dtx-rocketmq-broker
+    ports:
+      - "10909:10909"
+      - "10911:10911"
+      - "10912:10912"
+    environment:
+      - NAMESRV_ADDR=rocketmq-nameserver:9876
+      - JAVA_OPT_EXT=-server -Xms512m -Xmx512m
+    command: sh mqbroker -n rocketmq-nameserver:9876
+    depends_on:
+      - rocketmq-nameserver
+
+  # RocketMQ Console
+  rocketmq-console:
+    image: apacherocketmq/rocketmq-dashboard:latest
+    container_name: dtx-rocketmq-console
+    ports:
+      - "8080:8080"
+    environment:
+      - JAVA_OPTS=-Drocketmq.namesrv.addr=rocketmq-nameserver:9876
+    depends_on:
+      - rocketmq-nameserver
+
+  # Seata Server
+  seata-server:
+    image: seataio/seata-server:1.8.0
+    container_name: dtx-seata-server
+    ports:
+      - "8091:8091"
+      - "7091:7091"
+    environment:
+      - SEATA_PORT=8091
+      - STORE_MODE=file
+
+volumes:
+  mysql-data:

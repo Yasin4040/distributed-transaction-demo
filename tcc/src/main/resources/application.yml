@@ -1,0 +1,41 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: tcc-demo
+  datasource:
+    order:
+      url: jdbc:mysql://localhost:3306/dtx_order?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf-8
+      username: root
+      password: root
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      hikari:
+        minimum-idle: 5
+        maximum-pool-size: 20
+    inventory:
+      url: jdbc:mysql://localhost:3306/dtx_inventory?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf-8
+      username: root
+      password: root
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      hikari:
+        minimum-idle: 5
+        maximum-pool-size: 20
+    account:
+      url: jdbc:mysql://localhost:3306/dtx_account?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf-8
+      username: root
+      password: root
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      hikari:
+        minimum-idle: 5
+        maximum-pool-size: 20
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+  mapper-locations: classpath:mapper/*.xml
+
+logging:
+  level:
+    com.example.dtx: DEBUG

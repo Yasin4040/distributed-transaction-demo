@@ -1,0 +1,51 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: xa-2pc-demo
+  
+  jta:
+    enabled: true
+    atomikos:
+      datasource:
+        order-db:
+          unique-resource-name: orderDB
+          xa-data-source-class-name: com.mysql.cj.jdbc.MysqlXADataSource
+          xa-properties:
+            url: jdbc:mysql://localhost:3306/dtx_order?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf-8
+            user: root
+            password: root
+          min-pool-size: 5
+          max-pool-size: 20
+          
+        inventory-db:
+          unique-resource-name: inventoryDB
+          xa-data-source-class-name: com.mysql.cj.jdbc.MysqlXADataSource
+          xa-properties:
+            url: jdbc:mysql://localhost:3306/dtx_inventory?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf-8
+            user: root
+            password: root
+          min-pool-size: 5
+          max-pool-size: 20
+          
+        account-db:
+          unique-resource-name: accountDB
+          xa-data-source-class-name: com.mysql.cj.jdbc.MysqlXADataSource
+          xa-properties:
+            url: jdbc:mysql://localhost:3306/dtx_account?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf-8
+            user: root
+            password: root
+          min-pool-size: 5
+          max-pool-size: 20
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+  mapper-locations: classpath:mapper/*.xml
+
+logging:
+  level:
+    com.atomikos: DEBUG
+    org.springframework.transaction: DEBUG
