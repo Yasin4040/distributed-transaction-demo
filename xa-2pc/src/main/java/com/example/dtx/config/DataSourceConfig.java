@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.MybatisConfiguration;
 import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
 import com.mysql.cj.jdbc.MysqlXADataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -20,20 +21,9 @@ import jakarta.transaction.UserTransaction;
 /**
  * XA多数据源配置类
  * 
- * XA两阶段提交原理：
- * 阶段一（投票阶段）：
- * 1. 协调者向所有参与者发送事务内容，询问是否可以提交
- * 2. 参与者执行本地事务，写入redo和undo日志，锁定资源
- * 3. 参与者返回Yes或No给协调者
- * 
- * 阶段二（提交阶段）：
- * 1. 如果所有参与者返回Yes，协调者发送Commit指令
- * 2. 参与者收到Commit后，执行本地提交，释放锁
- * 3. 如果有参与者返回No，协调者发送Rollback指令
- * 4. 参与者收到Rollback后，执行本地回滚，释放锁
+ * 每个数据源独立配置 SqlSessionFactory，配合 JTA 实现分布式事务
  */
 @Configuration
-@MapperScan(basePackages = "com.example.dtx.mapper", sqlSessionFactoryRef = "sqlSessionFactory")
 public class DataSourceConfig {
 
     /**
@@ -84,19 +74,17 @@ public class DataSourceConfig {
         props.setProperty("url", "jdbc:mysql://localhost:3306/" + database + 
             "?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf-8");
         props.setProperty("user", "root");
-        props.setProperty("password", "root");
+        props.setProperty("password", "123456");
         return props;
     }
 
-    /**
-     * 配置MyBatis SqlSessionFactory
-     * 使用动态数据源路由
-     */
-    @Bean(name = "sqlSessionFactory")
-    public SqlSessionFactory sqlSessionFactory(
-            @Qualifier("dynamicDataSource") DataSource dynamicDataSource) throws Exception {
+    // ==================== Order 数据源配置 ====================
+    
+    @Bean(name = "orderSqlSessionFactory")
+    @Primary
+    public SqlSessionFactory orderSqlSessionFactory(@Qualifier("orderDataSource") DataSource dataSource) throws Exception {
         MybatisSqlSessionFactoryBean sessionFactory = new MybatisSqlSessionFactoryBean();
-        sessionFactory.setDataSource(dynamicDataSource);
+        sessionFactory.setDataSource(dataSource);
         
         MybatisConfiguration configuration = new MybatisConfiguration();
         configuration.setMapUnderscoreToCamelCase(true);
@@ -106,25 +94,50 @@ public class DataSourceConfig {
         return sessionFactory.getObject();
     }
 
-    /**
-     * 动态数据源
-     */
-    @Bean(name = "dynamicDataSource")
-    public DataSource dynamicDataSource(
-            @Qualifier("orderDataSource") DataSource orderDataSource,
-            @Qualifier("inventoryDataSource") DataSource inventoryDataSource,
-            @Qualifier("accountDataSource") DataSource accountDataSource) {
+    @Bean(name = "orderSqlSessionTemplate")
+    @Primary
+    public SqlSessionTemplate orderSqlSessionTemplate(@Qualifier("orderSqlSessionFactory") SqlSessionFactory sqlSessionFactory) {
+        return new SqlSessionTemplate(sqlSessionFactory);
+    }
+
+    // ==================== Inventory 数据源配置 ====================
+    
+    @Bean(name = "inventorySqlSessionFactory")
+    public SqlSessionFactory inventorySqlSessionFactory(@Qualifier("inventoryDataSource") DataSource dataSource) throws Exception {
+        MybatisSqlSessionFactoryBean sessionFactory = new MybatisSqlSessionFactoryBean();
+        sessionFactory.setDataSource(dataSource);
         
-        DynamicRoutingDataSource dynamicDataSource = new DynamicRoutingDataSource();
-        dynamicDataSource.setDefaultTargetDataSource(orderDataSource);
+        MybatisConfiguration configuration = new MybatisConfiguration();
+        configuration.setMapUnderscoreToCamelCase(true);
+        configuration.setLogImpl(org.apache.ibatis.logging.stdout.StdOutImpl.class);
+        sessionFactory.setConfiguration(configuration);
         
-        java.util.Map<Object, Object> targetDataSources = new java.util.HashMap<>();
-        targetDataSources.put("order", orderDataSource);
-        targetDataSources.put("inventory", inventoryDataSource);
-        targetDataSources.put("account", accountDataSource);
-        dynamicDataSource.setTargetDataSources(targetDataSources);
+        return sessionFactory.getObject();
+    }
+
+    @Bean(name = "inventorySqlSessionTemplate")
+    public SqlSessionTemplate inventorySqlSessionTemplate(@Qualifier("inventorySqlSessionFactory") SqlSessionFactory sqlSessionFactory) {
+        return new SqlSessionTemplate(sqlSessionFactory);
+    }
+
+    // ==================== Account 数据源配置 ====================
+    
+    @Bean(name = "accountSqlSessionFactory")
+    public SqlSessionFactory accountSqlSessionFactory(@Qualifier("accountDataSource") DataSource dataSource) throws Exception {
+        MybatisSqlSessionFactoryBean sessionFactory = new MybatisSqlSessionFactoryBean();
+        sessionFactory.setDataSource(dataSource);
         
-        return dynamicDataSource;
+        MybatisConfiguration configuration = new MybatisConfiguration();
+        configuration.setMapUnderscoreToCamelCase(true);
+        configuration.setLogImpl(org.apache.ibatis.logging.stdout.StdOutImpl.class);
+        sessionFactory.setConfiguration(configuration);
+        
+        return sessionFactory.getObject();
+    }
+
+    @Bean(name = "accountSqlSessionTemplate")
+    public SqlSessionTemplate accountSqlSessionTemplate(@Qualifier("accountSqlSessionFactory") SqlSessionFactory sqlSessionFactory) {
+        return new SqlSessionTemplate(sqlSessionFactory);
     }
 
     /**

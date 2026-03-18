@@ -15,7 +15,7 @@ spring:
           xa-properties:
             url: jdbc:mysql://localhost:3306/dtx_order?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf-8
             user: root
-            password: root
+            password: 123456
           min-pool-size: 5
           max-pool-size: 20
           
@@ -25,7 +25,7 @@ spring:
           xa-properties:
             url: jdbc:mysql://localhost:3306/dtx_inventory?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf-8
             user: root
-            password: root
+            password: 123456
           min-pool-size: 5
           max-pool-size: 20
           
@@ -35,7 +35,7 @@ spring:
           xa-properties:
             url: jdbc:mysql://localhost:3306/dtx_account?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf-8
             user: root
-            password: root
+            password: 123456
           min-pool-size: 5
           max-pool-size: 20
 

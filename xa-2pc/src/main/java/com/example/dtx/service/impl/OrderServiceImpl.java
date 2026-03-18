@@ -1,12 +1,11 @@
 package com.example.dtx.service.impl;
 
-import com.example.dtx.config.DynamicRoutingDataSource;
 import com.example.dtx.entity.Account;
 import com.example.dtx.entity.Inventory;
 import com.example.dtx.entity.Order;
-import com.example.dtx.mapper.AccountMapper;
-import com.example.dtx.mapper.InventoryMapper;
-import com.example.dtx.mapper.OrderMapper;
+import com.example.dtx.mapper.account.AccountMapper;
+import com.example.dtx.mapper.inventory.InventoryMapper;
+import com.example.dtx.mapper.order.OrderMapper;
 import com.example.dtx.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -69,12 +68,10 @@ public class OrderServiceImpl implements OrderService {
         order.setCreateTime(LocalDateTime.now());
         order.setUpdateTime(LocalDateTime.now());
         
-        DynamicRoutingDataSource.setDataSource("order");
         orderMapper.insert(order);
         log.info("阶段1-订单创建成功: orderNo={}", order.getOrderNo());
         
         // 2. 扣减库存
-        DynamicRoutingDataSource.setDataSource("inventory");
         int inventoryResult = inventoryMapper.deductStock(productId, quantity);
         if (inventoryResult == 0) {
             throw new RuntimeException("库存不足");
@@ -82,7 +79,6 @@ public class OrderServiceImpl implements OrderService {
         log.info("阶段1-库存扣减成功: productId={}, quantity={}", productId, quantity);
         
         // 3. 扣减余额
-        DynamicRoutingDataSource.setDataSource("account");
         int accountResult = accountMapper.deductBalance(userId, amount);
         if (accountResult == 0) {
             throw new RuntimeException("余额不足");
@@ -90,7 +86,6 @@ public class OrderServiceImpl implements OrderService {
         log.info("阶段1-余额扣减成功: userId={}, amount={}", userId, amount);
         
         // 4. 更新订单状态为成功
-        DynamicRoutingDataSource.setDataSource("order");
         orderMapper.updateStatus(order.getOrderNo(), 1);
         log.info("阶段1-订单状态更新成功");
         
@@ -98,7 +93,6 @@ public class OrderServiceImpl implements OrderService {
         // 如果有异常，会发送Rollback指令
         log.info("=== XA两阶段提交 - 事务准备完成，等待协调器提交 ===");
         
-        DynamicRoutingDataSource.clearDataSource();
         return order;
     }
 
@@ -121,12 +115,10 @@ public class OrderServiceImpl implements OrderService {
         order.setCreateTime(LocalDateTime.now());
         order.setUpdateTime(LocalDateTime.now());
         
-        DynamicRoutingDataSource.setDataSource("order");
         orderMapper.insert(order);
         log.info("阶段1-订单创建成功: orderNo={}", order.getOrderNo());
         
         // 2. 扣减库存
-        DynamicRoutingDataSource.setDataSource("inventory");
         int inventoryResult = inventoryMapper.deductStock(productId, quantity);
         if (inventoryResult == 0) {
             throw new RuntimeException("库存不足");

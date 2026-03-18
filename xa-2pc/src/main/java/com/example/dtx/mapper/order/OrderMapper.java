@@ -1,4 +1,4 @@
-package com.example.dtx.mapper;
+package com.example.dtx.mapper.order;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.dtx.entity.Order;
